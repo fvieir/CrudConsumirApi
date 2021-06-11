@@ -14,18 +14,53 @@ class App
 
     public function __construct()
     {
+        define('PATH',realpath("./")); // Caminho absoluto do projeto
+        define('HOST',$_SERVER['SERVER_NAME']); 
+        define('USER','root');
+        define('PASSWORD','');
+        define('DRIVE','mysql');
+        define('DBNAME','');
+
         $this->url();
     }
 
     public function run()
     {
-        if (isset($this->controller) && !empty($this->controller)) {
-            
+        if (isset($this->controller) OR !empty($this->controller)) 
+        {    
+            $this->controllerName = ucwords($this->controller)."Controller";
+            $this->controllerName = preg_replace('/[^a-zA-Z]/i','',$this->controllerName);
+
         }else {
-            $this->controller = 'HomeControler';
+            $this->controllerName = 'HomeControler';    
         }
 
-        var_dump($this->controller, $this->action, $this->params);
+        $this->controllerFile = $this->controllerName.".php";
+        
+
+       // var_dump(PATH."/App/Controller/".$this->controllerFile);
+
+        if(file_exists(PATH."/App/Controller/".$this->controllerFile)   )
+        {
+            $classeName = "App\\Controller\\".$this->controllerFile;
+            echo $classeName;
+            $objetoClasse = new $classeName();
+        }else{
+            
+        }
+
+
+        // CRIAR CONTROLLERFILE
+        //VERIFICAR SE EXISTE O DIRETORIO
+        //$classeName RECEBE NAMESPACE E NOME DO CONTROLLER
+        // $OBJETO CLASSE E INSTANCIAN COM CLASSE NAME
+        //VERIFICA SE EXISTE CLASSE
+        //VERIFICA SE EXISTE METODO
+        // SE EXISTE INSTNCIA CLASSE E CHAMA METODO
+        //SE NAO VERIFICA SE NAO EXISTE METODO  E SE TEM METODO NA CLASSE CHAMADO INDEX
+        //SENAO GERA UM ERRO COM THOW
+
+        //var_dump($this->controller,  $this->action, $this->params, $this->controllerName);
     }
 
     public function url()
@@ -34,6 +69,8 @@ class App
         {
             $path = $_GET['url'];
             $path = filter_var($path,FILTER_SANITIZE_URL);
+            $path = ltrim($path,'/');
+
             $path = explode('/',$path);
 
             $this->controller = $this->VerificaArray($path,0);
@@ -44,9 +81,6 @@ class App
                 unset($path[1]);
                 $this->params = array_values($path);
             }
-
-           
-            
         }
     }
 
@@ -56,6 +90,21 @@ class App
             return $value[$key];
         }
         return NULL;
+    }
+
+    public function getController()
+    {
+        return $this->controller;
+    }
+
+    public function getAction()
+    {
+        return $this->action;
+    }
+
+    public function getControllerName()
+    {
+        return $this->controllerName;
     }
 
 }
