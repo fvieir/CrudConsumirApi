@@ -2,6 +2,10 @@
 
 namespace App;
 
+use Exception;
+use App\Controllers\HomeController;
+
+
 class App 
 {
 
@@ -14,6 +18,8 @@ class App
 
     public function __construct()
     {
+        
+        define('APP_HOST',$_SERVER['HTTP_HOST']."/"); // Localhost/
         define('PATH',realpath("./")); // Caminho absoluto do projeto
         define('HOST',$_SERVER['SERVER_NAME']); 
         define('USER','root');
@@ -26,41 +32,36 @@ class App
 
     public function run()
     {
-        if (isset($this->controller) OR !empty($this->controller)) 
+        if (isset($this->controller)) 
         {    
             $this->controllerName = ucwords($this->controller)."Controller";
             $this->controllerName = preg_replace('/[^a-zA-Z]/i','',$this->controllerName);
 
         }else {
-            $this->controllerName = 'HomeControler';    
+            $this->controllerName = 'HomeController';    
         }
 
-        $this->controllerFile = $this->controllerName.".php";
-        
-
-       // var_dump(PATH."/App/Controller/".$this->controllerFile);
-
-        if(file_exists(PATH."/App/Controller/".$this->controllerFile)   )
+        $this->controllerFile = $this->controllerName.".php";  
+       
+        if(!file_exists(PATH."/App/Controllers/".$this->controllerFile)   )
         {
-            $classeName = "App\\Controller\\".$this->controllerFile;
-            echo $classeName;
-            $objetoClasse = new $classeName();
-        }else{
-            
+            throw new Exception("Pagina não encontrada");
         }
 
+        $nomeClasse = '\\App\\Controllers\\'.$this->controllerName;
+        $objetoClasse = new $nomeClasse($this);
 
-        // CRIAR CONTROLLERFILE
-        //VERIFICAR SE EXISTE O DIRETORIO
-        //$classeName RECEBE NAMESPACE E NOME DO CONTROLLER
-        // $OBJETO CLASSE E INSTANCIAN COM CLASSE NAME
-        //VERIFICA SE EXISTE CLASSE
-        //VERIFICA SE EXISTE METODO
-        // SE EXISTE INSTNCIA CLASSE E CHAMA METODO
-        //SE NAO VERIFICA SE NAO EXISTE METODO  E SE TEM METODO NA CLASSE CHAMADO INDEX
-        //SENAO GERA UM ERRO COM THOW
+        if (!class_exists($nomeClasse)) {
+            throw new Exception("Classe não existe, suporte esta verificando.");
+        }
 
-        //var_dump($this->controller,  $this->action, $this->params, $this->controllerName);
+        if (method_exists($objetoClasse, $this->action)){
+            $objetoClasse->{$this->action}{$this->action};
+        } else if(!$this->action && method_exists($objetoClasse,'index')){
+            $objetoClasse->index($this);
+        }else{
+            throw new Exception("Erro na aplicação!");
+        }
     }
 
     public function url()
@@ -89,7 +90,7 @@ class App
         if (isset($value[$key]) && !empty($value[$key])) {
             return $value[$key];
         }
-        return NULL;
+        return null;
     }
 
     public function getController()
@@ -106,7 +107,6 @@ class App
     {
         return $this->controllerName;
     }
-
 }
 
 ?>
